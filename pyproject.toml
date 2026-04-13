@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "geno-msg"
+version = "0.1.0"
+description = "Inter-agent messaging for the geno ecosystem"
+requires-python = ">=3.10"
+dependencies = ["click>=8.0"]
+
+[project.scripts]
+geno-msg = "geno_msg.cli:entry_point"
+
+[tool.setuptools.packages.find]
+include = ["geno_msg*"]
