@@ -11,6 +11,7 @@ dependencies = ["click>=8.0"]
 
 [project.scripts]
 geno-msg = "geno_msg.cli:entry_point"
+geno-wait = "geno_msg.wait:main"
 
 [tool.setuptools.packages.find]
 include = ["geno_msg*"]
