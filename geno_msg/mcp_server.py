@@ -1,16 +1,22 @@
 """MCP server for geno-msg inter-agent messaging.
 
 Exposes send_message, read_messages, and list_sessions as MCP tools.
+Runs a background inbox watcher that pushes MCP log notifications
+when new messages arrive — no polling from the client needed.
+
 Run with: python -m geno_msg.mcp_server
 """
 
 from __future__ import annotations
 
+import asyncio
 import json
+import os
 import sys
 from typing import Any
 
 from .store import (
+    MESSAGES_DIR,
     get_current_session_id,
     mark_read,
     read_inbox,
@@ -18,21 +24,23 @@ from .store import (
     send_message,
 )
 
-
-def _read_request() -> dict[str, Any] | None:
-    """Read a JSON-RPC request from stdin."""
-    line = sys.stdin.readline()
-    if not line:
-        return None
-    try:
-        return json.loads(line)
-    except json.JSONDecodeError:
-        return None
+# How often to check for new messages (seconds)
+WATCH_INTERVAL = 5
 
 
 def _write_response(response: dict[str, Any]) -> None:
     """Write a JSON-RPC response to stdout."""
     sys.stdout.write(json.dumps(response) + "\n")
+    sys.stdout.flush()
+
+
+def _write_notification(method: str, params: dict[str, Any]) -> None:
+    """Write a JSON-RPC notification (no id) to stdout."""
+    sys.stdout.write(json.dumps({
+        "jsonrpc": "2.0",
+        "method": method,
+        "params": params,
+    }) + "\n")
     sys.stdout.flush()
 
 
@@ -179,51 +187,146 @@ def handle_tool_call(name: str, arguments: dict[str, Any]) -> str:
         return json.dumps({"error": f"Unknown tool: {name}"})
 
 
-def main() -> None:
-    """Run the MCP server (JSON-RPC over stdio)."""
-    while True:
-        request = _read_request()
-        if request is None:
-            break
+def handle_request(request: dict[str, Any]) -> None:
+    """Process a single JSON-RPC request."""
+    req_id = request.get("id")
+    method = request.get("method", "")
 
-        req_id = request.get("id")
-        method = request.get("method", "")
+    if method == "initialize":
+        _write_response(_success(req_id, {
+            "protocolVersion": "2024-11-05",
+            "serverInfo": {"name": "geno-msg", "version": "0.2.0"},
+            "capabilities": {"tools": {}, "logging": {}},
+        }))
 
-        if method == "initialize":
+    elif method == "notifications/initialized":
+        pass  # No response needed
+
+    elif method == "tools/list":
+        _write_response(_success(req_id, {"tools": TOOLS}))
+
+    elif method == "tools/call":
+        params = request.get("params", {})
+        tool_name = params.get("name", "")
+        arguments = params.get("arguments", {})
+
+        try:
+            result_text = handle_tool_call(tool_name, arguments)
             _write_response(_success(req_id, {
-                "protocolVersion": "2024-11-05",
-                "serverInfo": {"name": "geno-msg", "version": "0.1.0"},
-                "capabilities": {"tools": {}},
+                "content": [{"type": "text", "text": result_text}],
+            }))
+        except Exception as e:
+            _write_response(_success(req_id, {
+                "content": [{"type": "text", "text": f"Error: {e}"}],
+                "isError": True,
             }))
 
-        elif method == "notifications/initialized":
-            pass  # No response needed
+    elif method == "ping":
+        _write_response(_success(req_id, {}))
 
-        elif method == "tools/list":
-            _write_response(_success(req_id, {"tools": TOOLS}))
+    else:
+        if req_id is not None:
+            _write_response(_error(req_id, -32601, f"Method not found: {method}"))
 
-        elif method == "tools/call":
-            params = request.get("params", {})
-            tool_name = params.get("name", "")
-            arguments = params.get("arguments", {})
 
-            try:
-                result_text = handle_tool_call(tool_name, arguments)
-                _write_response(_success(req_id, {
-                    "content": [{"type": "text", "text": result_text}],
-                }))
-            except Exception as e:
-                _write_response(_success(req_id, {
-                    "content": [{"type": "text", "text": f"Error: {e}"}],
-                    "isError": True,
-                }))
+class InboxWatcher:
+    """Watches the inbox directory for new messages and sends MCP notifications."""
 
-        elif method == "ping":
-            _write_response(_success(req_id, {}))
+    def __init__(self, session_id: str):
+        self.session_id = session_id
+        self.inbox_dir = MESSAGES_DIR / session_id
+        # Track known message files so we only notify on new ones
+        self._known_files: set[str] = set()
+        self._scan_existing()
 
-        else:
-            if req_id is not None:
-                _write_response(_error(req_id, -32601, f"Method not found: {method}"))
+    def _scan_existing(self) -> None:
+        """Record existing message files so we don't notify on startup."""
+        if not self.inbox_dir.exists():
+            return
+        for f in self.inbox_dir.glob("*.json"):
+            self._known_files.add(f.name)
+
+    def check_new(self) -> list[dict[str, Any]]:
+        """Check for new message files. Returns list of new message dicts."""
+        if not self.inbox_dir.exists():
+            return []
+
+        new_messages = []
+        current_files = set()
+
+        for f in self.inbox_dir.glob("*.json"):
+            current_files.add(f.name)
+            if f.name not in self._known_files:
+                try:
+                    with open(f) as fh:
+                        data = json.load(fh)
+                    # Only notify for unread messages
+                    if not data.get("read", False):
+                        new_messages.append(data)
+                except (json.JSONDecodeError, OSError):
+                    continue
+
+        self._known_files = current_files
+        return new_messages
+
+
+async def stdin_reader() -> None:
+    """Read JSON-RPC requests from stdin asynchronously."""
+    loop = asyncio.get_event_loop()
+    reader = asyncio.StreamReader()
+    protocol = asyncio.StreamReaderProtocol(reader)
+    await loop.connect_read_pipe(lambda: protocol, sys.stdin)
+
+    while True:
+        line = await reader.readline()
+        if not line:
+            break
+        try:
+            request = json.loads(line.decode())
+            handle_request(request)
+        except json.JSONDecodeError:
+            continue
+
+
+async def inbox_watcher_loop(session_id: str | None) -> None:
+    """Poll inbox for new messages and send MCP notifications."""
+    if not session_id:
+        # Can't watch without knowing which session we are
+        return
+
+    watcher = InboxWatcher(session_id)
+
+    while True:
+        await asyncio.sleep(WATCH_INTERVAL)
+        new_messages = watcher.check_new()
+        for msg in new_messages:
+            sender = msg.get("from", "unknown")[:8]
+            text = msg.get("message", "")
+            # Send MCP logging notification
+            _write_notification("notifications/message", {
+                "level": "info",
+                "logger": "geno-msg",
+                "data": f"New message from {sender}: {text}",
+            })
+
+
+async def main_async() -> None:
+    """Run MCP server with concurrent inbox watching."""
+    session_id = get_current_session_id()
+
+    # Run both the stdin reader and inbox watcher concurrently
+    await asyncio.gather(
+        stdin_reader(),
+        inbox_watcher_loop(session_id),
+    )
+
+
+def main() -> None:
+    """Entry point."""
+    try:
+        asyncio.run(main_async())
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == "__main__":
