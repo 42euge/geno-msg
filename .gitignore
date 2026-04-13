@@ -10,4 +10,5 @@ venv/
 .vscode/
 .DS_Store
 .env
+.geno_msg.egg-info/
 site/
