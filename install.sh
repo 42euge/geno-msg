@@ -24,13 +24,19 @@ mkdir -p "${BIN_DIR}"
 cp "${SCRIPT_DIR}/geno_msg/inbox_watcher.sh" "${BIN_DIR}/inbox-watcher.sh"
 chmod +x "${BIN_DIR}/inbox-watcher.sh"
 
-# 3. Symlink CLI
+# 3. Install Claude Code slash command
+echo "→ Installing /geno-msg slash command..."
+COMMANDS_DIR="${HOME}/.claude/commands"
+mkdir -p "${COMMANDS_DIR}"
+cp "${SCRIPT_DIR}/geno_msg/claude_command.md" "${COMMANDS_DIR}/geno-msg.md"
+
+# 5. Symlink CLI
 echo "→ Creating CLI symlinks..."
 mkdir -p "${HOME}/.local/bin"
 ln -sf "${VENV_DIR}/bin/geno-msg" "${HOME}/.local/bin/geno-msg"
 ln -sf "${VENV_DIR}/bin/geno-wait" "${HOME}/.local/bin/geno-wait"
 
-# 4. Configure Claude Code hooks
+# 6. Configure Claude Code hooks
 echo "→ Configuring Claude Code hooks..."
 if [ -f "${SETTINGS}" ]; then
   # Add hooks if not already present
@@ -78,7 +84,7 @@ else
   echo "  Warning: ${SETTINGS} not found. Create it or configure hooks manually."
 fi
 
-# 5. Register MCP server
+# 7. Register MCP server
 echo "→ Registering MCP server..."
 if [ -f "${MCP_CONFIG}" ]; then
   python3 -c "
