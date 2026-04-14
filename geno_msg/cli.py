@@ -115,7 +115,7 @@ def _handle_inbox(args: list[str]) -> None:
                 click.echo(f"    {msg.message}")
                 click.echo()
 
-    if do_mark_read:
+    if do_mark_read or not quiet:
         mark_read(session_id, [m.id for m in messages])
 
 

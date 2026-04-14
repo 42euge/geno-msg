@@ -41,9 +41,9 @@ Start live message monitoring. The watcher uses a **detect-and-exit** pattern:
 2. The watcher polls the inbox **without consuming messages** (peek only).
 3. When a message arrives, the watcher **exits** — this triggers a task-completion notification.
 4. On notification, react to the message. The PostToolUse hook (`inbox --quiet`) will inject it into the conversation on your next tool use (peek only — the message stays unread).
-5. After processing the message, mark it as read:
+5. After processing the message, consume it by reading the inbox (plain `inbox` auto-marks as read):
    ```bash
-   ~/.geno/venv/bin/geno-msg inbox --mark-read
+   ~/.geno/venv/bin/geno-msg inbox
    ```
 6. **Restart the watcher** by running the same background command again.
 

@@ -30,10 +30,10 @@ if [ "$1" != "--force" ]; then
   fi
 fi
 
-# Poll without consuming — exit on first message so task completion
-# notification wakes the agent.
+# Poll without consuming (--quiet = peek only) — exit on first message
+# so task completion notification wakes the agent.
 while true; do
-  output=$("$GENO_MSG" inbox 2>/dev/null)
+  output=$("$GENO_MSG" inbox --quiet 2>/dev/null)
   if [ -n "$output" ] && [ "$output" != "No messages." ]; then
     echo "New message detected"
     exit 0
