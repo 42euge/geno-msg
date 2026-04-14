@@ -24,11 +24,12 @@ mkdir -p "${BIN_DIR}"
 cp "${SCRIPT_DIR}/geno_msg/inbox_watcher.sh" "${BIN_DIR}/inbox-watcher.sh"
 chmod +x "${BIN_DIR}/inbox-watcher.sh"
 
-# 3. Install Claude Code slash command
-echo "→ Installing /geno-msg slash command..."
-COMMANDS_DIR="${HOME}/.claude/commands"
-mkdir -p "${COMMANDS_DIR}"
-cp "${SCRIPT_DIR}/geno_msg/claude_command.md" "${COMMANDS_DIR}/geno-msg.md"
+# 3. Install skill (symlink for single source of truth)
+echo "→ Installing geno-msg skill..."
+SKILLS_DIR="${HOME}/.claude/skills"
+mkdir -p "${SKILLS_DIR}"
+ln -sfn "${SCRIPT_DIR}/skills/geno-msg" "${SKILLS_DIR}/geno-msg"
+echo "  Symlinked to ${SKILLS_DIR}/geno-msg"
 
 # 5. Symlink CLI
 echo "→ Creating CLI symlinks..."

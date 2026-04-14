@@ -9,7 +9,7 @@ VENV_DIR="${GENO_DIR}/venv"
 BIN_DIR="${GENO_DIR}/bin"
 SETTINGS="${HOME}/.claude/settings.json"
 MCP_CONFIG="${HOME}/.claude/.mcp.json"
-COMMANDS_DIR="${HOME}/.claude/commands"
+SKILLS_DIR="${HOME}/.claude/skills"
 
 echo "=== geno-msg uninstaller ==="
 
@@ -75,9 +75,11 @@ else:
 "
 fi
 
-# 3. Remove slash command
-echo "→ Removing /geno-msg slash command..."
-rm -f "${COMMANDS_DIR}/geno-msg.md"
+# 3. Remove skill
+echo "→ Removing geno-msg skill..."
+rm -rf "${SKILLS_DIR}/geno-msg"
+# Also clean up legacy slash command if present
+rm -f "${HOME}/.claude/commands/geno-msg.md"
 echo "  Done."
 
 # 4. Remove CLI symlinks
@@ -102,7 +104,7 @@ fi
 
 echo ""
 echo "=== Done! ==="
-echo "  Removed: hooks, MCP server, slash command, CLI symlinks, watcher, package"
+echo "  Removed: hooks, MCP server, skill, CLI symlinks, watcher, package"
 echo "  Kept:    ~/.geno/geno-msg/ (message data), ~/.geno/venv/ (shared venv)"
 echo ""
 echo "Restart Claude Code to apply changes."

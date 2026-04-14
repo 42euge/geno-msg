@@ -1,12 +1,19 @@
 ---
 name: geno-msg
-description: Inter-agent messaging — send messages, check inbox, join live chat, list sessions
-user_invocable: true
+description: >-
+  Inter-agent messaging — send messages, check inbox, join live chat, list sessions.
+  Use when user says /geno-msg, asks to message another session, check inbox, or join live chat.
+allowed-tools: "Bash(~/.geno/venv/bin/geno-msg *) Bash(~/.geno/bin/inbox-watcher.sh *)"
+argument-hint: "[send|inbox|sessions|join|broadcast] [args...]"
 ---
 
 # geno-msg — Inter-Agent Messaging
 
-You have access to geno-msg MCP tools (`send_message`, `read_messages`, `list_sessions`) and the CLI at `/Users/euge/.geno/venv/bin/geno-msg`.
+```!
+which ~/.geno/venv/bin/geno-msg >/dev/null 2>&1 || echo "⚠️ geno-msg is not installed. Run: bash <repo>/install.sh"
+```
+
+You have access to geno-msg MCP tools (`send_message`, `read_messages`, `list_sessions`) and the CLI at `~/.geno/venv/bin/geno-msg`.
 
 ## Commands
 
@@ -21,7 +28,7 @@ Send a message to another session using the `send_message` MCP tool. Session can
 ### `/geno-msg sessions`
 List available sessions with live/dead status. Run:
 ```bash
-/Users/euge/.geno/venv/bin/geno-msg sessions
+~/.geno/venv/bin/geno-msg sessions
 ```
 
 ### `/geno-msg join [session-id]`
@@ -29,7 +36,7 @@ Start live message monitoring. The watcher uses a **detect-and-exit** pattern:
 
 1. Run the inbox watcher as a **background Bash command** (`run_in_background: true`):
    ```bash
-   /Users/euge/.geno/bin/inbox-watcher.sh --force
+   ~/.geno/bin/inbox-watcher.sh --force
    ```
 2. The watcher polls the inbox **without consuming messages** (peek only).
 3. When a message arrives, the watcher **exits** — this triggers a task-completion notification.
@@ -43,7 +50,7 @@ If no session-id is given, watch the current session's inbox.
 ### `/geno-msg broadcast <message>`
 Send a message to ALL live sessions. Run:
 ```bash
-/Users/euge/.geno/venv/bin/geno-msg sessions
+~/.geno/venv/bin/geno-msg sessions
 ```
 Then use the `send_message` MCP tool to send to each LIVE session.
 
