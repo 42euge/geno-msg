@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Background inbox watcher for geno-msg.
-# Polls inbox and outputs messages as JSON with hookSpecificOutput
-# so Claude Code injects them into the model's context.
+# Polls inbox WITHOUT consuming messages (no --quiet/--mark-read).
+# Exits as soon as a message is detected so the task-completion
+# notification wakes the agent. The PostToolUse hook then consumes
+# the message via "inbox --quiet".
 #
 # When run as a SessionStart hook, checks ~/.geno/geno-msg/settings.json
 # for autoJoin=true before starting. Pass --force to skip the check.
@@ -28,11 +30,13 @@ if [ "$1" != "--force" ]; then
   fi
 fi
 
+# Poll without consuming — exit on first message so task completion
+# notification wakes the agent.
 while true; do
-  output=$("$GENO_MSG" inbox --quiet 2>/dev/null)
-  if [ -n "$output" ]; then
-    escaped=$(echo "$output" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))")
-    echo "{\"hookSpecificOutput\":{\"hookEventName\":\"Notification\",\"additionalContext\":$escaped}}"
+  output=$("$GENO_MSG" inbox 2>/dev/null)
+  if [ -n "$output" ] && [ "$output" != "No messages." ]; then
+    echo "New message detected"
+    exit 0
   fi
   sleep "$INTERVAL"
 done
