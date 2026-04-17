@@ -35,9 +35,27 @@ def _format_age(ts_str: str) -> str:
 
 
 def _handle_send(args: list[str]) -> None:
-    """geno-msg send <session> <message...>"""
+    """geno-msg send [--type TYPE] <session> <message...>"""
+    msg_type = "context"
+
+    # Parse --type flag
+    filtered_args = []
+    i = 0
+    while i < len(args):
+        if args[i] == "--type" and i + 1 < len(args):
+            msg_type = args[i + 1]
+            i += 2
+            continue
+        elif args[i].startswith("--type="):
+            msg_type = args[i].split("=", 1)[1]
+            i += 1
+            continue
+        filtered_args.append(args[i])
+        i += 1
+    args = filtered_args
+
     if len(args) < 2:
-        click.echo("Usage: geno-msg send <session-id> <message>")
+        click.echo("Usage: geno-msg send [--type context|command|question|update|reply] <session-id> <message>")
         raise SystemExit(1)
 
     to_ref = args[0]
@@ -46,9 +64,10 @@ def _handle_send(args: list[str]) -> None:
     to_session = resolve_session(to_ref)
     from_session = get_current_session_id() or "unknown"
 
-    msg = send_message(from_session, to_session, message)
+    msg = send_message(from_session, to_session, message, type=msg_type)
 
-    click.echo(f"Sent to {to_session[:8]}: {message[:80]}")
+    type_label = f" [{msg_type}]" if msg_type != "context" else ""
+    click.echo(f"Sent{type_label} to {to_session[:8]}: {message[:80]}")
     click.echo(f"  File: {msg.file_path}")
 
 
@@ -105,13 +124,25 @@ def _handle_inbox(args: list[str]) -> None:
             prefix = "  " if not quiet else ""
             from_label = msg.from_session[:8] if msg.from_session else "unknown"
 
+            msg_type = getattr(msg, "type", "context") or "context"
+            type_colors = {
+                "command": "red",
+                "question": "magenta",
+                "update": "blue",
+                "reply": "green",
+                "context": "yellow",
+            }
+            type_color = type_colors.get(msg_type, "yellow")
+
             if quiet:
-                # Minimal output for hooks — just the message content
-                click.secho(f"[msg from {from_label}] ", fg="yellow", bold=True, nl=False)
+                # Minimal output for hooks — type + content
+                type_tag = f" {msg_type}" if msg_type != "context" else ""
+                click.secho(f"[{msg_type} from {from_label}] ", fg=type_color, bold=True, nl=False)
                 click.echo(msg.message)
             else:
                 status = " " if not msg.read else "✓"
-                click.echo(f"  {status} [{age}] from {from_label}:")
+                type_tag = click.style(f" {msg_type}", fg=type_color, bold=True)
+                click.echo(f"  {status} [{age}]{type_tag} from {from_label}:")
                 click.echo(f"    {msg.message}")
                 click.echo()
 
@@ -366,6 +397,7 @@ def _handle_join(args: list[str]) -> None:
                         data = json.load(fh)
                     if not data.get("read", False):
                         sender = data.get("from", "unknown")[:8]
+                        msg_type = data.get("type", "context")
                         ts = data.get("timestamp", "")
                         try:
                             dt = datetime.fromisoformat(ts)
@@ -373,7 +405,10 @@ def _handle_join(args: list[str]) -> None:
                         except (ValueError, TypeError):
                             ts_str = "??:??:??"
                         msg = data.get("message", "")
-                        click.secho(f"  [{ts_str}] {sender}: ", fg="yellow", bold=True, nl=False)
+                        type_colors = {"command": "red", "question": "magenta", "update": "blue", "reply": "green", "context": "yellow"}
+                        color = type_colors.get(msg_type, "yellow")
+                        type_tag = f" {msg_type}" if msg_type != "context" else ""
+                        click.secho(f"  [{ts_str}]{type_tag} {sender}: ", fg=color, bold=True, nl=False)
                         click.echo(msg)
                 except (json.JSONDecodeError, OSError):
                     pass
@@ -434,7 +469,8 @@ def entry_point() -> None:
         click.echo("geno-msg — inter-agent messaging")
         click.echo()
         click.echo("Usage:")
-        click.echo("  geno-msg send <session> <message>   Send a message")
+        click.echo("  geno-msg send <session> <message>   Send a message (default type: context)")
+        click.echo("  geno-msg send --type command <session> <message>")
         click.echo("  geno-msg inbox                      Check inbox (current session)")
         click.echo("  geno-msg inbox <session-id>          Check inbox for a session")
         click.echo("  geno-msg inbox --quiet               Minimal output (for hooks)")

@@ -25,6 +25,8 @@ Check the inbox for unread messages using the `read_messages` MCP tool.
 ### `/geno-msg send <session> <message>`
 Send a message to another session using the `send_message` MCP tool. Session can be a partial ID or numeric index.
 
+**Always include a `type` parameter** when sending via MCP. Choose the right type for how the recipient should interpret the message.
+
 ### `/geno-msg sessions`
 List available sessions with live/dead status. Run:
 ```bash
@@ -57,6 +59,28 @@ Send a message to ALL live sessions. Run:
 ~/.geno/venv/bin/geno-msg sessions
 ```
 Then use the `send_message` MCP tool to send to each LIVE session.
+
+## Message Types
+
+Every message has a `type` that tells the recipient how to interpret it:
+
+| Type | Color | Meaning | Recipient should... |
+|------|-------|---------|-------------------|
+| `context` | yellow | Background info, FYI | Read and absorb. No action required. |
+| `command` | red | Direct instruction | Execute the requested action. |
+| `question` | magenta | Asking something | Reply with an answer. |
+| `update` | blue | Status/progress report | Acknowledge. No action required. |
+| `reply` | green | Response to a previous message | Read and continue. |
+
+**Default is `context`** — the safest type. Use `command` only when you explicitly want the other session to do something.
+
+### How to handle incoming messages by type
+
+- **context**: Absorb the information. It may inform your current work but doesn't require you to stop what you're doing.
+- **command**: This is a direct instruction. Execute it, then send an `update` or `reply` back.
+- **question**: Stop and reply. Use type `reply` in your response.
+- **update**: Acknowledge if relevant, otherwise just note it.
+- **reply**: Continue the conversation or move on.
 
 ## Auto-Join Behavior
 

@@ -67,6 +67,12 @@ TOOLS = [
                     "type": "string",
                     "description": "Message text to send",
                 },
+                "type": {
+                    "type": "string",
+                    "description": "Message type: context (default, background info), command (do this), question (reply expected), update (FYI), reply (response to previous)",
+                    "enum": ["context", "command", "question", "update", "reply"],
+                    "default": "context",
+                },
                 "from_session": {
                     "type": "string",
                     "description": "Sender session ID (optional, auto-detected if omitted)",
@@ -120,15 +126,17 @@ def handle_tool_call(name: str, arguments: dict[str, Any]) -> str:
     if name == "send_message":
         to_ref = arguments["to"]
         message = arguments["message"]
+        msg_type = arguments.get("type", "context")
         from_session = arguments.get("from_session") or get_current_session_id() or "unknown"
 
         to_session = resolve_session(to_ref)
-        msg = send_message(from_session, to_session, message)
+        msg = send_message(from_session, to_session, message, type=msg_type)
 
         return json.dumps({
             "status": "sent",
             "to": to_session,
             "from": from_session,
+            "type": msg_type,
             "message_id": msg.id,
             "file": msg.file_path,
         })
@@ -301,12 +309,13 @@ async def inbox_watcher_loop(session_id: str | None) -> None:
         new_messages = watcher.check_new()
         for msg in new_messages:
             sender = msg.get("from", "unknown")[:8]
+            msg_type = msg.get("type", "context")
             text = msg.get("message", "")
             # Send MCP logging notification
             _write_notification("notifications/message", {
                 "level": "info",
                 "logger": "geno-msg",
-                "data": f"New message from {sender}: {text}",
+                "data": f"New {msg_type} from {sender}: {text}",
             })
 
 
