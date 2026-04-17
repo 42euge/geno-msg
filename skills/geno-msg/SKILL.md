@@ -86,7 +86,13 @@ Every message has a `type` that tells the recipient how to interpret it:
 
 ## Auto-Join Behavior
 
-On session start, check `~/.geno/geno-msg/settings.json`. If `autoJoin` is `true`, automatically start the background inbox watcher (same as `/geno-msg join`).
+On session start OR resume, check `~/.geno/geno-msg/settings.json`. If `autoJoin` is `true`, automatically start the background inbox watcher (same as `/geno-msg join`).
+
+The `SessionStart` hook runs the watcher on fresh sessions. For **resumed sessions**, the watcher won't be running. If you see inbox messages arrive via the `UserPromptSubmit` hook but don't have a background watcher running, start one:
+```bash
+~/.geno/bin/inbox-watcher.sh --force
+```
+Run this as a background command on your first interaction in a resumed session when `autoJoin` is `true`.
 
 ## Settings
 
