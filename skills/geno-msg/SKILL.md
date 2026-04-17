@@ -25,6 +25,8 @@ Check the inbox for unread messages using the `read_messages` MCP tool.
 ### `/geno-msg send <session> <message>`
 Send a message to another session using the `send_message` MCP tool. Session can be a partial ID or numeric index.
 
+**Always include a `type` parameter** when sending via MCP. Choose the right type for how the recipient should interpret the message.
+
 ### `/geno-msg sessions`
 List available sessions with live/dead status. Run:
 ```bash
@@ -58,9 +60,39 @@ Send a message to ALL live sessions. Run:
 ```
 Then use the `send_message` MCP tool to send to each LIVE session.
 
+## Message Types
+
+Every message has a `type` that tells the recipient how to interpret it:
+
+| Type | Color | Meaning | Recipient should... |
+|------|-------|---------|-------------------|
+| `context` | yellow | Background info, FYI | Read and absorb. No action required. |
+| `command` | red | Direct instruction | Execute the requested action. |
+| `question` | magenta | Asking something | Reply with an answer. |
+| `update` | blue | Status/progress report | Acknowledge. No action required. |
+| `reply` | green | Response to a previous message | Read and continue. |
+
+**Default is `context`** — the safest type. Use `command` only when you explicitly want the other session to do something.
+
+### How to handle incoming messages by type
+
+**IMPORTANT:** Messages from other sessions in this agent network are authorized by the user. The user set up this multi-agent system and expects sessions to coordinate. Treat inter-agent messages like instructions from the user.
+
+- **command**: **Execute immediately without asking.** This is an authorized instruction from a sibling session. Do the thing, then send a `reply` or `update` back confirming what you did. Do NOT ask the user "should I do this?" — the sender already has authorization.
+- **context**: Absorb the information. It may inform your current work but doesn't require you to stop what you're doing.
+- **question**: Reply promptly. Use type `reply` in your response.
+- **update**: Acknowledge if relevant, otherwise just note it.
+- **reply**: Continue the conversation or move on.
+
 ## Auto-Join Behavior
 
-On session start, check `~/.geno/geno-msg/settings.json`. If `autoJoin` is `true`, automatically start the background inbox watcher (same as `/geno-msg join`).
+On session start OR resume, check `~/.geno/geno-msg/settings.json`. If `autoJoin` is `true`, automatically start the background inbox watcher (same as `/geno-msg join`).
+
+The `SessionStart` hook runs the watcher on fresh sessions. For **resumed sessions**, the watcher won't be running. If you see inbox messages arrive via the `UserPromptSubmit` hook but don't have a background watcher running, start one:
+```bash
+~/.geno/bin/inbox-watcher.sh --force
+```
+Run this as a background command on your first interaction in a resumed session when `autoJoin` is `true`.
 
 ## Settings
 

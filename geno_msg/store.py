@@ -9,8 +9,16 @@ Each message file contains:
     "to": "<recipient-session-id>",
     "timestamp": "<ISO 8601>",
     "message": "<text>",
+    "type": "context",
     "read": false
   }
+
+Message types:
+  - context:  Background info — read and absorb, no action required
+  - command:  Direct instruction — do this thing
+  - question: Asking something — reply expected
+  - update:   Status/progress report — FYI, no action required
+  - reply:    Response to a previous message
 """
 
 from __future__ import annotations
@@ -25,12 +33,15 @@ from typing import Any
 
 MESSAGES_DIR = Path.home() / ".geno" / "messages"
 
+MESSAGE_TYPES = ("context", "command", "question", "update", "reply")
+
 
 @dataclass
 class Message:
     from_session: str
     to_session: str
     message: str
+    type: str = "context"
     timestamp: str = ""
     read: bool = False
     id: str = ""
@@ -48,14 +59,17 @@ class Message:
             "from": self.from_session,
             "to": self.to_session,
             "timestamp": self.timestamp,
+            "type": self.type,
             "message": self.message,
             "read": self.read,
         }
 
 
-def send_message(from_session: str, to_session: str, message: str) -> Message:
+def send_message(from_session: str, to_session: str, message: str, type: str = "context") -> Message:
     """Send a message to a session. Returns the created Message."""
-    msg = Message(from_session=from_session, to_session=to_session, message=message)
+    if type not in MESSAGE_TYPES:
+        type = "context"
+    msg = Message(from_session=from_session, to_session=to_session, message=message, type=type)
 
     # Create recipient directory
     recipient_dir = MESSAGES_DIR / to_session
@@ -92,6 +106,7 @@ def read_inbox(session_id: str, unread_only: bool = True) -> list[Message]:
                     from_session=data.get("from", ""),
                     to_session=data.get("to", ""),
                     message=data.get("message", ""),
+                    type=data.get("type", "context"),
                     timestamp=data.get("timestamp", ""),
                     read=data.get("read", False),
                     id=data.get("id", msg_file.stem),
