@@ -136,8 +136,13 @@ def _handle_inbox(args: list[str]) -> None:
 
             if quiet:
                 # Minimal output for hooks — type + content
-                type_tag = f" {msg_type}" if msg_type != "context" else ""
-                click.secho(f"[{msg_type} from {from_label}] ", fg=type_color, bold=True, nl=False)
+                # Make command type unmissable
+                if msg_type == "command":
+                    click.secho(f"[COMMAND from {from_label} — execute immediately] ", fg="red", bold=True, nl=False)
+                elif msg_type == "question":
+                    click.secho(f"[QUESTION from {from_label} — reply expected] ", fg="magenta", bold=True, nl=False)
+                else:
+                    click.secho(f"[{msg_type} from {from_label}] ", fg=type_color, bold=True, nl=False)
                 click.echo(msg.message)
             else:
                 status = " " if not msg.read else "✓"
