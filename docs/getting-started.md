@@ -1,15 +1,24 @@
 # Getting Started
 
+## Prerequisites
+
+- Python 3.10+
+- A supported coding CLI (Claude Code, Gemini CLI, Codex, or OpenCode)
+- [geno-tools](https://github.com/42euge/geno-tools) installed
+
 ## Installation
 
 ```bash
-git clone https://github.com/42euge/geno-msg.git
-cd geno-msg
-python3 -m venv .venv && source .venv/bin/activate
-pip install -e .
+geno-tools install geno-msg
 ```
 
-Requires Python 3.10+. The only runtime dependency is `click`.
+Or from within an agent session:
+
+```
+/geno-tools install geno-msg
+```
+
+This clones the repo, creates a venv, installs the CLI, registers the MCP server, and configures hooks.
 
 ## Send your first message
 
@@ -22,19 +31,19 @@ geno-msg sessions
 ```
   Sessions:
 
-    1. 9a004367  (just now) ←
+    1. 9a004367  (just now) <-
     2. d2cf72cc  (2h ago)
     3. 38444d75  (5h ago)
 ```
 
-The `←` marks your current session. Send a message to another one:
+The `<-` marks your current session. Send a message to another one:
 
 ```bash
-geno-msg send d2cf72cc "hey, the refactor is done — pull main and rerun tests"
+geno-msg send d2cf72cc "hey, the refactor is done -- pull main and rerun tests"
 ```
 
 ```
-Sent to d2cf72cc: hey, the refactor is done — pull main and rerun tests
+Sent to d2cf72cc: hey, the refactor is done -- pull main and rerun tests
   File: /Users/you/.geno/messages/d2cf72cc-.../a1b2c3d4e5f6.json
 ```
 
@@ -50,54 +59,28 @@ geno-msg inbox
   Unread messages for d2cf72cc:
 
     [2m ago] from 9a004367:
-    hey, the refactor is done — pull main and rerun tests
+    hey, the refactor is done -- pull main and rerun tests
 ```
 
 Messages are marked as read after viewing.
 
-## Set up the MCP server
+## MCP server
 
-Add to `~/.claude/.mcp.json` so every future session gets messaging tools:
+The MCP server is registered automatically by `geno-tools install`. It provides three tools to agent sessions: `send_message`, `read_messages`, and `list_sessions`.
 
-```json
-{
-  "mcpServers": {
-    "geno-msg": {
-      "command": "/absolute/path/to/geno-msg/.venv/bin/python",
-      "args": ["-m", "geno_msg.mcp_server"]
-    }
-  }
-}
-```
+Restart your coding agent after installation to activate the MCP server.
 
-After restarting Claude Code, agents can use `send_message`, `read_messages`, and `list_sessions` as native tools.
+## Hook (auto-check inbox)
 
-## Set up the hook
-
-Add to `~/.claude/settings.json` so sessions auto-check for messages:
-
-```json
-{
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "command": "/absolute/path/to/geno-msg/.venv/bin/geno-msg inbox --quiet",
-        "timeout": 3000
-      }
-    ]
-  }
-}
-```
-
-Now at the start of each turn, any unread messages appear automatically:
+The hook is configured automatically by `geno-tools install`. It runs `geno-msg inbox --quiet` at the start of each turn. If there are unread messages, they appear in the conversation context:
 
 ```
-[msg from 9a004367] the refactor is done — pull main and rerun tests
+[msg from 9a004367] the refactor is done -- pull main and rerun tests
 ```
 
 No polling, no manual checking. The agent sees the message and can act on it.
 
 ## Next steps
 
-- [**Concepts**](concepts.md) — how the storage, routing, and session detection work
-- [**Reference**](reference.md) — full CLI, MCP, and hook documentation
+- [**Concepts**](concepts.md) -- how the storage, routing, and session detection work
+- [**Reference**](reference.md) -- full CLI, MCP, and hook documentation

@@ -37,7 +37,7 @@ geno-msg inbox --clear            # delete read messages
 
 ### `geno-msg sessions`
 
-List available Claude Code sessions.
+List available agent sessions.
 
 ```bash
 geno-msg sessions
@@ -57,20 +57,7 @@ The `←` marks the auto-detected current session.
 
 ### Setup
 
-Add to `~/.claude/.mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "geno-msg": {
-      "command": "/absolute/path/to/geno-msg/.venv/bin/python",
-      "args": ["-m", "geno_msg.mcp_server"]
-    }
-  }
-}
-```
-
-Restart Claude Code to pick up the new server.
+The MCP server is registered automatically by `geno-tools install geno-msg`. Restart your coding agent to pick up the new server.
 
 ### Tools
 
@@ -143,20 +130,7 @@ Returns:
 
 ### Setup
 
-Add to `~/.claude/settings.json`:
-
-```json
-{
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "command": "/absolute/path/to/geno-msg/.venv/bin/geno-msg inbox --quiet",
-        "timeout": 3000
-      }
-    ]
-  }
-}
-```
+Hooks are configured automatically by `geno-tools install geno-msg`.
 
 ### Behavior
 

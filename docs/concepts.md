@@ -33,7 +33,7 @@ This design is intentional:
 
 ## Session identification
 
-Claude Code sessions are identified by UUIDs (e.g., `9a004367-5e0d-41e1-a461-f567688fc1d0`). These correspond to JSONL log files at `~/.claude/projects/<project-slug>/<session-id>.jsonl`.
+Agent sessions are identified by UUIDs (e.g., `9a004367-5e0d-41e1-a461-f567688fc1d0`). These correspond to JSONL log files at `~/.claude/projects/<project-slug>/<session-id>.jsonl`.
 
 geno-msg accepts multiple reference formats:
 
@@ -50,7 +50,7 @@ When you run `geno-msg inbox` without specifying a session, it tries to auto-det
 1. Getting the current working directory
 2. Scanning `~/.claude/projects/` for the most recently modified JSONL whose `cwd` matches
 
-This works well when you're running geno-msg from the same directory as the Claude Code session. If auto-detection fails, pass the session ID explicitly.
+This works well when you're running geno-msg from the same directory as the agent session. If auto-detection fails, pass the session ID explicitly.
 
 ## Message lifecycle
 

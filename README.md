@@ -1,14 +1,17 @@
 # geno-msg
 
-Inter-agent messaging for the geno ecosystem. Send messages between Claude Code sessions using file-based storage, CLI, MCP tools, or automatic hooks.
+Inter-agent messaging for the geno ecosystem. Send messages between coding agent sessions using file-based storage, CLI, MCP tools, or automatic hooks.
 
 ## Install
 
 ```bash
-git clone https://github.com/42euge/geno-msg.git
-cd geno-msg
-python3 -m venv .venv && source .venv/bin/activate
-pip install -e .
+geno-tools install geno-msg
+```
+
+Or from within an agent session:
+
+```
+/geno-tools install geno-msg
 ```
 
 ## Usage
@@ -30,39 +33,11 @@ Session references work like geno-mon: full UUID, partial ID (`d2cf72cc`), or nu
 
 ### MCP Server
 
-Add to `~/.claude/.mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "geno-msg": {
-      "command": "/path/to/geno-msg/.venv/bin/python",
-      "args": ["-m", "geno_msg.mcp_server"]
-    }
-  }
-}
-```
-
-This gives every Claude Code session three tools: `send_message`, `read_messages`, `list_sessions`.
+The MCP server gives every agent session three tools: `send_message`, `read_messages`, `list_sessions`. It is configured automatically by `geno-tools install`.
 
 ### Hook (auto-check inbox)
 
-Add to `~/.claude/settings.json`:
-
-```json
-{
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "command": "/path/to/geno-msg/.venv/bin/geno-msg inbox --quiet",
-        "timeout": 3000
-      }
-    ]
-  }
-}
-```
-
-This checks for unread messages at the start of each turn. If there are messages, they appear in the conversation context automatically.
+A hook checks the inbox at the start of each turn. If there are unread messages, they appear in the conversation context automatically. Hooks are configured by `geno-tools install`.
 
 ## How it works
 
@@ -79,13 +54,21 @@ Messages are JSON files stored at `~/.geno/messages/<session-id>/`:
 }
 ```
 
-Transparent and traceable — `ls ~/.geno/messages/` to see everything.
+Transparent and traceable -- `ls ~/.geno/messages/` to see everything.
+
+## Documentation
+
+Full documentation at [42euge.github.io/geno-msg](https://42euge.github.io/geno-msg/).
 
 ## Part of the geno ecosystem
 
 | Project | Role |
 |---|---|
 | [geno](https://github.com/42euge/geno) | Agent orchestrator |
-| [geno-tools](https://github.com/42euge/geno-tools) | Skills package |
+| [geno-tools](https://github.com/42euge/geno-tools) | Skillset manager |
 | [geno-mon](https://github.com/42euge/geno-mon) | Agent observability |
 | **geno-msg** | Inter-agent messaging |
+
+## License
+
+[MIT](LICENSE)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # geno-msg installer
-# Sets up the venv, installs the package, configures Claude Code hooks,
+# Sets up the venv, installs the package, configures agent hooks,
 # and registers the MCP server.
 set -e
 
@@ -37,8 +37,8 @@ mkdir -p "${HOME}/.local/bin"
 ln -sf "${VENV_DIR}/bin/geno-msg" "${HOME}/.local/bin/geno-msg"
 ln -sf "${VENV_DIR}/bin/geno-wait" "${HOME}/.local/bin/geno-wait"
 
-# 6. Configure Claude Code hooks
-echo "→ Configuring Claude Code hooks..."
+# 6. Configure agent hooks
+echo "→ Configuring agent hooks..."
 if [ -f "${SETTINGS}" ]; then
   # Add hooks if not already present
   python3 -c "
@@ -128,4 +128,4 @@ echo "  CLI:     geno-msg (in ~/.local/bin)"
 echo "  MCP:     geno-msg server registered"
 echo "  Hooks:   inbox check on prompt/tool, watcher on session start"
 echo ""
-echo "Restart Claude Code to activate the MCP server and hooks."
+echo "Restart agent to activate the MCP server and hooks."
