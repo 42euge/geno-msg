@@ -7,30 +7,31 @@ repo_name: 42euge/geno-msg
 theme:
   name: material
   palette:
-    - scheme: slate
-      primary: teal
-      accent: amber
-      toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
-    - scheme: default
-      primary: teal
-      accent: amber
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-  features:
-    - navigation.tabs
-    - navigation.sections
-    - navigation.expand
-    - navigation.top
-    - navigation.instant
-    - content.code.copy
-    - search.suggest
-    - search.highlight
-    - toc.follow
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Inter
+    code: JetBrains Mono
   icon:
     repo: fontawesome/brands/github
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.highlight
+    - toc.follow
 
 nav:
   - Home: index.md
@@ -39,22 +40,15 @@ nav:
   - Reference: reference.md
   - Contributing: contributing.md
 
-plugins:
-  - search
-
 markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
   - pymdownx.tabbed:
       alternate_style: true
-  - tables
   - attr_list
-  - md_in_html
   - toc:
       permalink: true
-
-extra:
-  social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/42euge/geno-msg

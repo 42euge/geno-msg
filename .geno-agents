@@ -1,5 +1,5 @@
 role: geno-msg-dev
-description: Inter-agent messaging — send, receive, notify between Claude Code sessions
+description: Inter-agent messaging — send, receive, notify between coding agent sessions
 capabilities:
   - messaging
   - coordination

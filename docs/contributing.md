@@ -3,6 +3,12 @@
 ## Getting started
 
 ```bash
+geno-tools install geno-msg
+```
+
+For development, clone manually and install in editable mode:
+
+```bash
 git clone https://github.com/42euge/geno-msg.git
 cd geno-msg
 python3 -m venv .venv && source .venv/bin/activate
@@ -87,7 +93,7 @@ Good contributions:
 
 Before submitting:
 
-1. Test with real Claude Code sessions
+1. Test with real agent sessions
 2. Verify all three interfaces (CLI, MCP, hook) still work
 3. Keep the diff focused
 

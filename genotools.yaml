@@ -1,0 +1,12 @@
+name: geno-msg
+version: 0.1.0
+description: Inter-agent messaging for the geno ecosystem — send messages, check inbox, list sessions between coding agent sessions.
+
+venv:
+  name: geno-msg
+  deps:
+    - click>=8.0
+
+runtime:
+  - src: geno_msg/inbox_watcher.sh
+    dst: bin/inbox-watcher.sh

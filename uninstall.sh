@@ -13,8 +13,8 @@ SKILLS_DIR="${HOME}/.claude/skills"
 
 echo "=== geno-msg uninstaller ==="
 
-# 1. Remove Claude Code hooks
-echo "→ Removing Claude Code hooks..."
+# 1. Remove agent hooks
+echo "→ Removing agent hooks..."
 if [ -f "${SETTINGS}" ]; then
   python3 -c "
 import json
@@ -107,4 +107,4 @@ echo "=== Done! ==="
 echo "  Removed: hooks, MCP server, skill, CLI symlinks, watcher, package"
 echo "  Kept:    ~/.geno/geno-msg/ (message data), ~/.geno/venv/ (shared venv)"
 echo ""
-echo "Restart Claude Code to apply changes."
+echo "Restart agent to apply changes."
