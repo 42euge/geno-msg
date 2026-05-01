@@ -6,7 +6,7 @@ Inter-agent messaging for the geno ecosystem. Send messages between coding agent
 
 | Skill | Sub-skillset | Slash command |
 |-------|-------------|---------------|
-| geno-msg | -- | -- (umbrella) |
+| geno-msg | — | /geno-msg |
 
 ## Repo structure
 
@@ -38,6 +38,8 @@ geno-msg/
 - **Message storage**: JSON files at `~/.geno/messages/<recipient-session-id>/`.
 - **Session references**: full UUID, partial ID prefix, or numeric index (1 = most recent).
 - **Three interfaces**: CLI (`geno-msg`), MCP tools (`send_message`, `read_messages`, `list_sessions`), and hook (`inbox --quiet`).
+- **Command prefix aliasing**: slash commands in repo source files must always use the canonical `geno-` prefix (e.g. `/geno-msg`). The prefix users type (`/gt-`, `/geno-`, or bare `/`) is configured per-installation in `~/.geno/config.yaml` and applied at install time by `geno-tools install`. Never hardcode an aliased prefix like `gt-` in SKILL.md descriptions, GENO.md, or any committed file.
+- **Adding a new skill**: create a directory under `skills/` named `geno-msg-{sub-skillset}-{skill}`, add a `SKILL.md` with valid frontmatter (`name`, `description`, `allowed-tools`), update the umbrella skill's description to list the new command, update the skills table in this file, and update `docs/` if applicable.
 
 ## Architecture
 
