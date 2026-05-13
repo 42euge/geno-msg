@@ -1,5 +1,5 @@
 site_name: geno-msg
-site_description: Inter-agent messaging for the geno ecosystem
+site_description: Inter-agent messaging
 site_url: https://42euge.github.io/geno-msg/
 repo_url: https://github.com/42euge/geno-msg
 repo_name: 42euge/geno-msg
@@ -27,10 +27,14 @@ theme:
   icon:
     repo: fontawesome/brands/github
   features:
+    - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
     - navigation.top
     - content.code.copy
+    - content.code.annotate
     - search.highlight
+    - search.suggest
     - toc.follow
 
 nav:
@@ -39,6 +43,9 @@ nav:
   - Concepts: concepts.md
   - Reference: reference.md
   - Contributing: contributing.md
+
+extra_css:
+  - stylesheets/extra.css
 
 markdown_extensions:
   - admonition
@@ -50,5 +57,13 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
   - attr_list
+  - md_in_html
+  - def_list
   - toc:
       permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/42euge
+  generator: false
