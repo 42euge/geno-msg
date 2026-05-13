@@ -5,6 +5,17 @@ description: >-
   Use when user says /geno-msg, asks to message another session, check inbox, or join live chat.
 allowed-tools: "Bash(~/.geno/venv/bin/geno-msg *) Bash(~/.geno/bin/inbox-watcher.sh *)"
 argument-hint: "[send|inbox|sessions|join|broadcast] [args...]"
+observability:
+  success_signal: "message sent, inbox displayed, session list shown, or live chat joined"
+  failure_signals:
+    - "geno-msg CLI not installed"
+    - "target session not found or not live"
+    - "inbox watcher failed to start"
+  knowledge_reads:
+    - "~/.geno/geno-msg/settings.json (autoJoin, watchInterval config)"
+    - "~/.geno/geno-msg/inboxes/ (message inboxes)"
+  knowledge_writes:
+    - "~/.geno/geno-msg/inboxes/<session>/ (sent messages)"
 ---
 
 # geno-msg — Inter-Agent Messaging
@@ -100,3 +111,19 @@ Settings file: `~/.geno/geno-msg/settings.json`
 - `autoJoin` (bool): automatically start inbox watcher on session start
 - `watchInterval` (int): seconds between inbox checks (default 5)
 - `broadcastOnSend` (bool): when true, `/geno-msg send` without a target broadcasts to all live sessions
+
+## Completion
+
+When this skill finishes, emit a trace:
+
+```bash
+geno-trace emit \
+  --skill geno-msg \
+  --status <success|failure|abandoned> \
+  --tool-calls <approximate count> \
+  --errors <count of tool/command errors>
+```
+
+- `success` = message sent, inbox displayed, session list shown, or live chat joined successfully
+- `failure` = geno-msg CLI missing, target session not found, or inbox watcher failed
+- `abandoned` = user stopped early
